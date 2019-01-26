@@ -11,13 +11,14 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationEntryPointFailureHandler;
+import org.springframework.security.web.server.context.ServerSecurityContextRepository;
+import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
 import javax.annotation.Resource;
@@ -66,7 +67,7 @@ public class WebSecurityConfig {
                 .permitAll()
                 .and()
                 .authorizeExchange()
-                .pathMatchers("/home","/*")
+                .pathMatchers("/home", "/*")
                 .hasRole("ADMIN")
                 .and()
                 .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHORIZATION)
@@ -86,14 +87,28 @@ public class WebSecurityConfig {
     }
 
 
-    @Bean
+    /*@Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }*/
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new PasswordEncoder() {
+            @Override
+            public String encode(CharSequence charSequence) {
+                return charSequence.toString();
+            }
+
+            @Override
+            public boolean matches(CharSequence charSequence, String s) {
+                return true;
+            }
+        };
     }
 
-
     /**
-     *JSON으로 응답 결과를 반환 하기 위함
+     * JSON으로 응답 결과를 반환 하기 위함
      */
     private AuthenticationWebFilter authenticationWebFilter() {
         AuthenticationWebFilter filter = new AuthenticationWebFilter(authenticationManager());
@@ -109,6 +124,11 @@ public class WebSecurityConfig {
         );
 
         return filter;
+    }
+
+    @Bean
+    ServerSecurityContextRepository contextRepository(){
+        return new WebSessionServerSecurityContextRepository();
     }
 
 }

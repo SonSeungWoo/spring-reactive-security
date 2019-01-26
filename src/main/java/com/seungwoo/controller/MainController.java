@@ -5,18 +5,19 @@ import com.seungwoo.service.AccountService;
 import com.seungwoo.service.AccountServiceImpl;
 import com.seungwoo.service.TestService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.web.server.context.ServerSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -37,16 +38,30 @@ public class MainController {
     @Autowired
     TestService testService;
 
+    @Autowired
+    private ReactiveAuthenticationManager reactiveAuthenticationManager;
+
+    @Autowired
+    private ServerSecurityContextRepository contextRepository;
+
     @GetMapping("/login")
-    public String login(@ModelAttribute Account account){
-        Mono<UserDetails> userDetails = accountServiceImpl.findByUsername(account.getUsername());
+    public String login(@ModelAttribute Account account, ServerWebExchange serverWebExchange) {
+        reactiveAuthenticationManager.authenticate(new UsernamePasswordAuthenticationToken(account.getUsername(), null, null))
+                .subscribe(authentication -> {
+                   SecurityContextImpl securityContext = new SecurityContextImpl();
+                   securityContext.setAuthentication(authentication);
+                   this.contextRepository.save(serverWebExchange, securityContext)
+                           .subscriberContext(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(securityContext)))
+                           .subscribe();
+                });
+        /*Mono<UserDetails> userDetails = accountServiceImpl.findByUsername(account.getUsername());
         System.out.println(userDetails.toString());
         Authentication authentication = new UsernamePasswordAuthenticationToken("seungwoo1","0000", Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN")));
         ReactiveSecurityContextHolder.getContext()
                 .switchIfEmpty(Mono.error(new IllegalStateException("ReactiveSecurityContext is empty")))
                 .map(SecurityContext::getAuthentication)
                 .map(Authentication::getName)
-                .subscriberContext(ReactiveSecurityContextHolder.withAuthentication(authentication));
+                .subscriberContext(ReactiveSecurityContextHolder.withAuthentication(authentication));*/
         return "index";
     }
 
@@ -66,20 +81,20 @@ public class MainController {
     }*/
 
     @GetMapping("/")
-    public String main(){
+    public String main() {
         List<Account> list = accountService.findAll();
         System.out.println("===========index===========");
         return "index";
     }
 
     @GetMapping("/home")
-    public String home(){
+    public String home(@AuthenticationPrincipal User user) {
         System.out.println("===========home===========");
         return "home";
     }
 
     @GetMapping("/fail")
-    public String fail(){
+    public String fail() {
         System.out.println("===========fail===========");
         return "fail";
     }
