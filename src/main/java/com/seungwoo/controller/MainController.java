@@ -44,6 +44,12 @@ public class MainController {
     @Autowired
     private ServerSecurityContextRepository contextRepository;
 
+    /**
+     * reactive security
+     * @param account
+     * @param serverWebExchange
+     * @return
+     */
     @GetMapping("/login")
     public String login(@ModelAttribute Account account, ServerWebExchange serverWebExchange) {
         reactiveAuthenticationManager.authenticate(new UsernamePasswordAuthenticationToken(account.getUsername(), null, null))
@@ -65,6 +71,10 @@ public class MainController {
         return "index";
     }
 
+    /**
+     * 기존 security
+     * @return
+     */
     /*@GetMapping("/login")
     public String login(@ModelAttribute Account account, HttpServletRequest request){
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken("seungwoo1", "0000", Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN")));
@@ -88,7 +98,7 @@ public class MainController {
     }
 
     @GetMapping("/home")
-    public String home(@AuthenticationPrincipal User user) {
+    public String home() {
         System.out.println("===========home===========");
         return "home";
     }
@@ -96,6 +106,6 @@ public class MainController {
     @GetMapping("/fail")
     public String fail() {
         System.out.println("===========fail===========");
-        return "fail";
+        return "fal";
     }
 }
