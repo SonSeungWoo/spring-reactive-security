@@ -29,7 +29,6 @@ import javax.annotation.Resource;
  * Date: 2019-01-25
  * Time: 09:50
  */
-@Slf4j
 @Configuration
 @EnableReactiveMethodSecurity
 @EnableWebFluxSecurity
@@ -48,7 +47,6 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, UnauthorizedAuthenticationEntryPoint entryPoint) {
-        log.info("Initializing the security configuration");
         http.httpBasic().disable()
                 .formLogin().disable()
                 .csrf().disable()
@@ -59,7 +57,7 @@ public class WebSecurityConfig {
                 .authenticationEntryPoint(entryPoint)
                 .and()
                 .authorizeExchange()
-                .pathMatchers("/login")
+                .pathMatchers("/api", "/front", "/agent","/fail")
                 .permitAll()
                 .and()
                 .authorizeExchange()
@@ -67,7 +65,7 @@ public class WebSecurityConfig {
                 .permitAll()
                 .and()
                 .authorizeExchange()
-                .pathMatchers("/home", "/*")
+                .pathMatchers("/home", "/front/**")
                 .hasRole("ADMIN")
                 .and()
                 .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHORIZATION)
@@ -87,33 +85,25 @@ public class WebSecurityConfig {
     }
 
 
-    /*@Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }*/
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new PasswordEncoder() {
             @Override
-            public String encode(CharSequence charSequence) {
-                return charSequence.toString();
+            public String encode(CharSequence rawSequence) {
+                return rawSequence.toString();
             }
 
             @Override
-            public boolean matches(CharSequence charSequence, String s) {
+            public boolean matches(CharSequence rawPassword, String encodedPassword) {
                 return true;
             }
         };
     }
 
-    /**
-     * JSON으로 응답 결과를 반환 하기 위함
-     */
     private AuthenticationWebFilter authenticationWebFilter() {
         AuthenticationWebFilter filter = new AuthenticationWebFilter(authenticationManager());
 
-        filter.setAuthenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("/home"));
+        filter.setAuthenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("/success"));
         filter.setAuthenticationFailureHandler(
                 new ServerAuthenticationEntryPointFailureHandler(
                         new RedirectServerAuthenticationEntryPoint("/authentication-failure")
@@ -127,7 +117,7 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    ServerSecurityContextRepository contextRepository(){
+    ServerSecurityContextRepository contextRepository() {
         return new WebSessionServerSecurityContextRepository();
     }
 

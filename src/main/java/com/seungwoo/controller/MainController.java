@@ -15,6 +15,7 @@ import org.springframework.security.web.server.context.ServerSecurityContextRepo
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -50,7 +51,7 @@ public class MainController {
      * @param serverWebExchange
      * @return
      */
-    @GetMapping("/login")
+    @GetMapping("/front")
     public String login(@ModelAttribute Account account, ServerWebExchange serverWebExchange) {
         reactiveAuthenticationManager.authenticate(new UsernamePasswordAuthenticationToken(account.getUsername(), null, null))
                 .subscribe(authentication -> {
@@ -68,14 +69,14 @@ public class MainController {
                 .map(SecurityContext::getAuthentication)
                 .map(Authentication::getName)
                 .subscriberContext(ReactiveSecurityContextHolder.withAuthentication(authentication));*/
-        return "index";
+        return "redirect:index";
     }
 
     /**
      * 기존 security
      * @return
      */
-    /*@GetMapping("/login")
+    /*@GetMapping("/front")
     public String login(@ModelAttribute Account account, HttpServletRequest request){
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken("seungwoo1", "0000", Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN")));
 
@@ -90,7 +91,14 @@ public class MainController {
         return "index";
     }*/
 
-    @GetMapping("/")
+    @GetMapping("/front/all")
+    @ResponseBody
+    public String all() {
+        System.out.println("===========all===========");
+        return "all";
+    }
+
+    @GetMapping("/index")
     public String main() {
         List<Account> list = accountService.findAll();
         System.out.println("===========index===========");
@@ -104,8 +112,22 @@ public class MainController {
     }
 
     @GetMapping("/fail")
+    @ResponseBody
     public String fail() {
         System.out.println("===========fail===========");
-        return "fal";
+        return "fail";
+    }
+
+    @GetMapping("/success")
+    @ResponseBody
+    public String success() {
+        System.out.println("===========fail===========");
+        return "success";
+    }
+
+    @GetMapping("/authentication-failure")
+    @ResponseBody
+    public String failure(){
+        return "실패";
     }
 }
