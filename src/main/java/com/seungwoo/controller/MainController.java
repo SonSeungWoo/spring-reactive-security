@@ -1,16 +1,17 @@
 package com.seungwoo.controller;
 
 import com.seungwoo.domain.Account;
+import com.seungwoo.dto.ParamDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -20,7 +21,7 @@ import reactor.core.publisher.Mono;
  * Date: 2019-01-25
  * Time: 10:15
  */
-@Controller
+@RestController
 @RequiredArgsConstructor
 public class MainController {
 
@@ -61,8 +62,10 @@ public class MainController {
     }
 
     @GetMapping("/index")
-    public String main() {
+    public String main(@ModelAttribute ParamDto paramDto) {
         System.out.println("===========index===========");
+        System.out.println(paramDto.getTrId());
+        //throw new RuntimeException();
         return "index";
     }
 
