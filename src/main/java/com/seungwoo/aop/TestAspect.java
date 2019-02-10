@@ -1,4 +1,4 @@
-package com.seungwoo.controller;
+package com.seungwoo.aop;
 
 import com.seungwoo.dto.ParamDto;
 import org.aspectj.lang.annotation.Aspect;
